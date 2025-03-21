@@ -1,14 +1,10 @@
 from fastapi import FastAPI
 import uvicorn
-from endpoints.authentication.api import auth_router
 from endpoints.generate.api import code_router
-from database.database import Base, engine
 
 app = FastAPI()
 
-Base.metadata.create_all(bind=engine)
 
-app.include_router(auth_router, prefix='/v1')
 app.include_router(code_router,prefix='/v1')
 @app.get("/")
 def home():

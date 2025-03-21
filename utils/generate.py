@@ -1,15 +1,24 @@
+from dotenv import load_dotenv
 import openai
 from fastapi import HTTPException
 import os
+load_dotenv()
+# Ensure API key is properly loaded
+api_key = os.getenv("OPENAI_API_KEY")
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("OPENAI_API_KEY environment variable is not set!")
+
+
+
 
 def generate_code_response(prompt: str) -> str:
     """
     Handles the response from OpenAI API for code generation (Compatible with OpenAI v1.0.0+).
     """
     try:
-        client = openai.OpenAI()  
+        # Pass the API key explicitly when creating the client
+        client = openai.OpenAI(api_key=api_key)  
 
         response = client.chat.completions.create(
             model="gpt-4",  
