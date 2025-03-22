@@ -1,46 +1,95 @@
 import streamlit as st
 import requests
-from bs4 import BeautifulSoup
+import re
+import time
 
 # FastAPI base URL
-API_BASE_URL = "http://127.0.0.1:8000/v1/generate/generate-code"
+API_BASE_URL = "https://generationai.streamlit.app/v1/generate"
 
-# Function to extract description and code from the HTML response
+# Function to extract description and code without BeautifulSoup
 def extract_details(html_response: str) -> tuple:
-    soup = BeautifulSoup(html_response, "html.parser")
-
-    # Extract all text except the <code> block as the description
-    description_parts = []
-    for element in soup.find_all(["p", "div"]):  # Get text from paragraphs and divs
-        description_parts.append(element.get_text())
-
-    description = "\n".join(description_parts).strip()
-
-    # Extract only the code
-    code_block = soup.find("code")
-    code_text = code_block.text.strip() if code_block else "No executable code found."
-
+    # Extract code using regex
+    code_match = re.search(r'<code>(.*?)</code>', html_response, re.DOTALL)
+    code_text = code_match.group(1).strip() if code_match else "No executable code found."
+    
+    # Get description by removing code section and HTML tags
+    description = html_response
+    description = re.sub(r'<code>.*?</code>', '', description, flags=re.DOTALL)
+    description = re.sub(r'<[^>]+>', ' ', description)
+    description = re.sub(r'\s+', ' ', description).strip()
+    
     return description, code_text
 
-# User input for language and question
-language = st.selectbox("Select Language", ["Python", "JavaScript", "C++"])
-question = st.text_area("Enter your question")
+# Function to show loading spinner
+def show_loading():
+    with st.spinner("Generating, please wait..."):
+        time.sleep(1)  # Simulating a small delay
 
-if st.button("Generate Code"):
-    # API Request
-    response = requests.post(API_BASE_URL, json={"language": language, "question": question})
+# Streamlit UI
+st.title("Code Generator AI")
 
-    if response.status_code == 200:
-        result = response.json()
-        generated_html = result["code"]  
+# Sidebar options
+generation_type = st.sidebar.radio("Select what you want to generate", ["Code", "Document", "Story"])
 
-        # Extract description and code
-        description, extracted_code = extract_details(generated_html)
+if generation_type == "Code":
+    language = st.selectbox("Select Language", ["Python", "JavaScript", "C++"])
+    question = st.text_area("Enter your question")
+    
+    if st.button("Generate Code"):
+        show_loading()
+        try:
+            response = requests.post(
+                f"{API_BASE_URL}/generate-code", 
+                json={"language": language, "question": question},
+                timeout=15
+            )
+            if response.status_code == 200:
+                result = response.json()
+                generated_html = result["code"]  
+                description, extracted_code = extract_details(generated_html)
+                st.markdown(f"**Description:**\n\n{description}")
+                st.code(extracted_code, language.lower())  
+            else:
+                st.error(f"Failed to generate code. Status code: {response.status_code}")
+        except Exception as e:
+            st.error(f"Error connecting to API: {str(e)}")
 
-        # Display description properly
-        st.markdown(f"**Description:**\n\n{description}")
+elif generation_type == "Document":
+    document_topic = st.text_input("Enter Document Topic")
+    word_count = st.number_input("Enter Word Count", min_value=50, max_value=5000, step=50)
+    
+    if st.button("Generate Document"):
+        show_loading()
+        try:
+            response = requests.post(
+                f"{API_BASE_URL}/generate-document", 
+                json={"document_topic": document_topic, "word_count": word_count},
+                timeout=15
+            )
+            if response.status_code == 200:
+                result = response.json()
+                st.text_area("Generated Document", result["document"], height=300)
+            else:
+                st.error(f"Failed to generate document. Status code: {response.status_code}")
+        except Exception as e:
+            st.error(f"Error connecting to API: {str(e)}")
 
-        # Display extracted code in a proper code block
-        st.code(extracted_code, language.lower())  
-    else:
-        st.error("Failed to generate code. Please try again.")
+elif generation_type == "Story":
+    story_title = st.text_input("Enter Story Title")
+    story_form = st.selectbox("Select Story Form", ["Short Story", "Poem", "Narrative"])
+    
+    if st.button("Generate Story"):
+        show_loading()
+        try:
+            response = requests.post(
+                f"{API_BASE_URL}/generate-story", 
+                json={"story_title": story_title, "story_form": story_form},
+                timeout=15
+            )
+            if response.status_code == 200:
+                result = response.json()
+                st.text_area("Generated Story", result["document"], height=300)
+            else:
+                st.error(f"Failed to generate story. Status code: {response.status_code}")
+        except Exception as e:
+            st.error(f"Error connecting to API: {str(e)}")

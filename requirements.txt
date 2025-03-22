@@ -6,3 +6,6 @@ alembic
 python-dotenv
 pydantic
 pydantic-settings
+streamlit
+beautifulsoup4
+requests
