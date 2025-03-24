@@ -23,10 +23,8 @@ def generate_code_response(prompt: str) -> str:
         response = client.chat.completions.create(
             model="gpt-4",  
             messages=[
-                {"role": "system", "content": "You are a helpful coding assistant."},
                 {"role": "user", "content": prompt}
-            ],
-            max_tokens=700
+            ]
         )
 
         return response.choices[0].message.content.strip()

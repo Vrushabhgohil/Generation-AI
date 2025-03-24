@@ -1,35 +1,51 @@
 def create_code_prompt(language: str, question: str) -> str:
     """
-    Generates a strict prompt to ensure AI outputs a properly formatted
-    code block in the requested programming language within an HTML structure.
-    
-    Args:
-        language (str): The programming language for the generated code (e.g., "Python", "JavaScript").
-        question (str): User's coding request or problem statement.
-        
-    Returns:
-        str: A well-structured prompt enforcing proper language-specific code formatting in HTML.
+    Generates a structured HTML response with a description, code block, and conclusion.
+    Handles potential language spelling variations.
     """
-
+    
+    # Common programming language spelling variations
+    language_map = {
+        "python": "Python",
+        "javascript": "JavaScript", "js": "JavaScript", "java script": "JavaScript",
+        "typescript": "TypeScript", "ts": "TypeScript", "type script": "TypeScript",
+        "csharp": "C#", "c#": "C#", "c sharp": "C#",
+        "cplusplus": "C++", "c++": "C++",
+        "golang": "Go",
+        "shell": "Bash",
+        "ruby": "Ruby",
+        "php": "PHP",
+        "rust": "Rust",
+        "kotlin": "Kotlin",
+        "scala": "Scala",
+        "swift": "Swift",
+        "objective c": "Objective-C", "objectivec": "Objective-C",
+        "sql": "SQL"
+    }
+    
+    # Normalize language name if it matches a known variation
+    normalized_language = language.lower().strip()
+    if normalized_language in language_map:
+        language = language_map[normalized_language]
+    
     # Handle vague inputs
     if len(question.strip()) < 10:
-        question = f"Create a practical {language} example"
+        question = f"Create a practical {language} example."
 
     prompt = (
-        f"You are a highly skilled code assistant. Your task is to generate a code block in {language} "
-        f"for the following request: \"{question}\". Your response must follow these strict formatting rules: "
-        f"1. The output must be a **fully formatted HTML string** containing the code block. "
-        f"2. Use the appropriate HTML syntax highlighting for the specified language, wrapping the code inside: "
-        f"   - `<pre><code class='{language.lower()}'>` for the code block. "
-        f"   - Ensure the closing `</code></pre>` is properly placed. "
-        f"3. **Do not include any newline characters (\\n) or tabs (\\t)** anywhere in your response. "
-        f"4. Replace newlines with `<br>` tags to maintain readability when required. "
-        f"5. Use `&nbsp;` instead of tabs for indentation. "
-        f"6. Provide a **brief explanation** of the code before displaying the formatted code block. "
-        f"7. Ensure the output is a **single continuous HTML string** that can be rendered in a browser correctly. "
-        f"8. **Do not use Markdown**—only valid HTML with correct syntax highlighting. "
-        f"9. **Verify that the generated output is fully complete and contains no syntax errors.** "
-        f"10. The response must be fully structured with proper HTML document elements if necessary."
+        f"You are a highly skilled {language} developer. You know everything about {language}. Your task is to generate a structured response in {language} "
+        f"for the given request: \"{question}\". Your response **must** strictly follow this structure: "
+        f"\n\n1. **Description:** Provide a short explanation of what the code does."
+        f"\n2. **Code Block:** Format the code inside `<pre><code class='{language.lower()}'>` tags. ALL code must be placed inside these tags."
+        f"\n3. **Conclusion:** Summarize the output or how to use the code."
+        f"\n\nEnsure the response is fully formatted as an **HTML string** and contains:"
+        f"\n- No Markdown format like triple backticks - use proper HTML tags only."
+        f"\n- No unnecessary newlines (`\\n`)."
+        f"\n- Proper `<br>` for line breaks if needed."
+        f"\n- Use `&nbsp;` instead of tabs for indentation."
+        f"\n- For complex code, make sure ALL code is contained within the code block."
+        f"\n- Wrap the description in <p> tags and the conclusion in <p> tags."
+        f"\n- Use <h2>Description</h2>, <h2>Code Block</h2>, and <h2>Conclusion</h2> as section headings."
     )
 
     return prompt
