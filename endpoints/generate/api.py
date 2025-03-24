@@ -1,10 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 
 from schema.codeai import ChatRequest, CodeRequest, DocsRequest, StoryRequest
 from utils.generate import (
     generate_code_response,
     generate_document_response,
     generate_story_response,
+    save_text_to_docx,
+    save_text_to_pdf,
 )
 import os
 import openai
@@ -25,14 +28,42 @@ def generate_code(request: CodeRequest):
     return {"language": request.language, "code": generated_code}
 
 
+# @code_router.post("/generate-document")
+# def generate_docs(request: DocsRequest):
+#     """
+#     Generate Document based on its title.
+#     """
+#     prompt = create_document_prompt(request.document_topic, request.word_count)
+#     generated_docs = generate_document_response(prompt)
+#     return {"document topic": request.document_topic, "document": generated_docs}
+
+
+
+
 @code_router.post("/generate-document")
-def generate_docs(request: DocsRequest):
+async def generate_document(request: DocsRequest):
     """
-    Generate Document based on its title.
+    Generates a document response and returns downloadable PDF and DOCX files.
     """
-    prompt = create_document_prompt(request.document_topic, request.word_count)
-    generated_docs = generate_document_response(prompt)
-    return {"document topic": request.document_topic, "document": generated_docs}
+    try:
+        prompt = create_document_prompt(request.document_topic, request.word_count)
+        response_text = generate_document_response(prompt)
+
+        pdf_filename = f"{request.document_topic}.pdf"
+        docx_filename = f"{request.document_topic}.docx"
+
+        pdf_path = save_text_to_pdf(response_text, pdf_filename)
+        docx_path = save_text_to_docx(response_text, docx_filename)
+
+        
+        return {
+            "document": response_text,
+            "pdf_url": f"/download/{pdf_filename}",
+            "docx_url": f"/download/{docx_filename}"
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @code_router.post("/generate-story")
@@ -52,3 +83,12 @@ async def chat(request: ChatRequest):
         messages=[{"role": "user", "content": request.prompt}]
     )
     return {"response": response.choices[0].message.content}
+
+
+
+@code_router.get("/download/{filename}")
+async def download_file(filename: str):
+    file_path = f"static/{filename}"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename=filename)
+    raise HTTPException(status_code=404, detail="File not found")

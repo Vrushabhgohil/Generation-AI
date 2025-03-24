@@ -11,3 +11,4 @@ requests
 streamlit
 openai
 beautifulsoup4
+python-docx
