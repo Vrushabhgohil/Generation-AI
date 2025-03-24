@@ -1,3 +1,4 @@
+pip
 fastapi
 uvicorn
 sqlalchemy
@@ -5,7 +6,6 @@ psycopg2-binary
 alembic
 python-dotenv
 pydantic
-pydantic-settingswatchdog
 uvicorn
 requests
 streamlit
