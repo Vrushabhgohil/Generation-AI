@@ -24,7 +24,7 @@ STORY_FORMS = [
 ]
 
 # API endpoints
-API_BASE_URL = "http://localhost:8000/v1/generate"  # Update with your actual API base URL
+API_BASE_URL = "https://generation-ai.streamlit.app/v1/generate"  # Update with your actual API base URL
 API_ENDPOINTS = {
     "code": f"{API_BASE_URL}/generate-code",
     "document": f"{API_BASE_URL}/generate-document",
