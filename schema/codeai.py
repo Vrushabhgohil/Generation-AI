@@ -1,3 +1,4 @@
+import openai
 from pydantic import BaseModel
 
 class CodeRequest(BaseModel):
@@ -11,3 +12,6 @@ class DocsRequest(BaseModel):
 class StoryRequest(BaseModel):
     story_title: str
     story_form: str
+
+class ChatRequest(openai.BaseModel):
+    prompt: str 

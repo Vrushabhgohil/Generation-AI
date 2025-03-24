@@ -24,11 +24,12 @@ STORY_FORMS = [
 ]
 
 # API endpoints
-API_BASE_URL = "https://generation-ai.streamlit.app/v1/generate"  # Update with your actual API base URL
+API_BASE_URL = "http://127.0.0.1:8000/v1/generate"  # Update with your actual API base URL
 API_ENDPOINTS = {
     "code": f"{API_BASE_URL}/generate-code",
     "document": f"{API_BASE_URL}/generate-document",
-    "story": f"{API_BASE_URL}/generate-story"
+    "story": f"{API_BASE_URL}/generate-story",
+    "chat": f"{API_BASE_URL}/chat"
 }
 
 def suggest_language(input_lang):
@@ -265,7 +266,7 @@ def format_document(document_text):
     return formatted_text
 
 # Tabs for different generation types
-tab1, tab2, tab3 = st.tabs(["Code Generator", "Document Generator", "Story Generator"])
+tab1, tab2, tab3, tab4 = st.tabs(["Code Generator", "Document Generator", "Story Generator", "Chatbot"])
 
 # Tab 1: Code Generator
 with tab1:
@@ -417,6 +418,33 @@ with tab3:
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
 
+with tab4:
+    st.header("💬 AI Chatbot")
+    st.write("Powered by GPT-4o and FastAPI")
+
+    # Initialize chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # User input
+    user_input = st.chat_input("Ask something...")
+    if user_input:
+        # Send request to FastAPI chatbot endpoint
+        try:
+            response = requests.post(API_ENDPOINTS["chat"], json={"prompt": user_input})
+            bot_response = response.json().get("response", "Sorry, something went wrong.")
+        except Exception as e:
+            bot_response = f"Error: {str(e)}"
+
+        # Add latest question and answer at the beginning
+        st.session_state.messages.insert(0, {"role": "assistant", "content": bot_response})
+        st.session_state.messages.insert(0, {"role": "user", "content": user_input})
+
+    # Display chat history (latest first)
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+            
 # Add footer
 st.markdown("---")
 st.markdown("Multi-Content Generator - Generate code, documents, and stories with AI assistance.")
