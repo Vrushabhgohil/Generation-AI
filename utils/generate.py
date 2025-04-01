@@ -23,7 +23,7 @@ def generate_code_response(prompt: str) -> str:
         client = openai.OpenAI(api_key=api_key)  
 
         response = client.chat.completions.create(
-            model="gpt-4",  
+            model="gpt-4o-mini",  
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -64,7 +64,7 @@ def generate_document_response(prompt: str) -> str:
         client = openai.OpenAI()
 
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[{"role": "system", "content": "You are a helpful document creator."},
                       {"role": "user", "content": prompt}],
             max_tokens=1500
@@ -103,7 +103,7 @@ def generate_story_response(prompt: str) -> str:
         client = openai.OpenAI()  
 
         response = client.chat.completions.create(
-            model="gpt-4",  
+            model="gpt-4o-mini",  
             messages=[
                 {"role": "system", "content": "You are a helpful Story creator."},
                 {"role": "user", "content": prompt}

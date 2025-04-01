@@ -13,5 +13,9 @@ class StoryRequest(BaseModel):
     story_title: str
     story_form: str
 
-class ChatRequest(openai.BaseModel):
+class ChatRequest(BaseModel): 
     prompt: str 
+
+class CodeCompilerRequest(BaseModel):  
+    language: str
+    code: str
