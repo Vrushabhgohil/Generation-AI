@@ -11,7 +11,7 @@ st.set_page_config(page_title="AI Code Assistant", layout="wide")
 
 # Constants
 API_CONFIG = {
-    "BASE_URL": "http://127.0.0.1:8000/v1/generate",
+    "BASE_URL": "https://generation-ai.onrender.com/v1/generate",
     "ENDPOINTS": {
         "code": "/generate-code",
         "document": "/generate-document",
