@@ -13,3 +13,4 @@ openai
 beautifulsoup4
 python-docx
 streamlit_option_menu
+reportlab
