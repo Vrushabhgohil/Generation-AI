@@ -8,6 +8,7 @@ app = FastAPI()
 
 
 app.include_router(code_router,prefix='/v1')
+
 @app.get("/")
 def home():
     return {"message": "Welcome to Code AI!"}

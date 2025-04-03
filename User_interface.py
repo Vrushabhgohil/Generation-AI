@@ -1,10 +1,10 @@
 import re
-from bs4 import BeautifulSoup
-import streamlit as st
-import requests
 import json
-from streamlit_option_menu import option_menu
+import requests
+import streamlit as st
 import streamlit.components.v1 as components
+from bs4 import BeautifulSoup
+from streamlit_option_menu import option_menu
 
 # Configuration
 st.set_page_config(page_title="AI Code Assistant", layout="wide")
@@ -20,8 +20,12 @@ API_CONFIG = {
     },
 }
 
-LANGUAGE_OPTIONS = ["Python", "JavaScript", "Java", "C++"]
+LANGUAGE_OPTIONS = ["Python", "JavaScript", "Java","Laravel","Typescript","Nextjs", "C++", "PHP", "HTML", "CSS", "Ruby", "Kotlin"]
 STORY_FORMS = ["Short Story", "Poem", "Novel Chapter"]
+
+# Chat avatars
+USER_AVATAR_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+BOT_AVATAR_URL = "https://cdn-icons-png.flaticon.com/512/4712/4712109.png"
 
 
 class APIClient:
@@ -29,9 +33,7 @@ class APIClient:
     def send_request(endpoint, payload):
         url = f"{API_CONFIG['BASE_URL']}{API_CONFIG['ENDPOINTS'][endpoint]}"
         try:
-            response = requests.post(
-                url, json=payload, headers={"Content-Type": "application/json"}
-            )
+            response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -123,9 +125,7 @@ class UI:
     def show_document_generator():
         st.header("Document Generator")
         topic = st.text_input("Enter document topic")
-        word_count = st.number_input(
-            "Word Count", min_value=100, max_value=5000, value=500
-        )
+        word_count = st.number_input("Word Count", min_value=100, max_value=5000, value=500)
 
         if st.button("Generate Document", type="primary"):
             if not topic:
@@ -164,14 +164,47 @@ class UI:
     @staticmethod
     def show_chat():
         st.header("Chat")
+
+        # Reset chat instantly on clear button
+        clear = st.button("Clear Chat")
+        if clear:
+            st.session_state.chat_history = []
+            st.experimental_user()
+
+        # Initialize history
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = []
+
         user_input = st.text_input("Enter your message")
 
-        if st.button("Send"):
+        if st.button("Send") and user_input.strip():
+            st.session_state.chat_history.append({"sender": "user", "message": user_input})
+
             with st.spinner("Processing..."):
                 payload = {"prompt": user_input}
                 result = APIClient.send_request("chat", payload)
+
                 if result and "response" in result:
-                    components.html(result["response"], height=600, scrolling=True)
+                    st.session_state.chat_history.append({"sender": "bot", "message": result["response"]})
+                else:
+                    st.session_state.chat_history.append({"sender": "bot", "message": "❌ Failed to get a response."})
+
+        # Show chat history
+        for chat in st.session_state.chat_history:
+            avatar = USER_AVATAR_URL if chat["sender"] == "user" else BOT_AVATAR_URL
+            align = "flex-start" if chat["sender"] == "user" else "flex-end"
+            bg_color = "#f0f0f0" if chat["sender"] == "user" else "#dceeff"
+            text_color = "#000000" if chat["sender"] == "user" else "#1a1a1a"
+
+            st.markdown(f"""
+                <div style='display: flex; justify-content: {align}; margin-bottom: 1rem;'>
+                    <img src='{avatar}' style='width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;' />
+                    <div style='background-color: {bg_color}; color: {text_color}; padding: 10px 15px; border-radius: 10px; max-width: 75%; word-wrap: break-word;'>
+                        {chat["message"]}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
 
     @staticmethod
     def display_code_results(result, language):
